@@ -36,7 +36,7 @@ export default {
     }
   },
   mounted() {
-    this.socket = io("http://localhost:3000")
+    this.socket = io("https://mychat-cyx1.onrender.com")
 
     this.socket.on("connect", () => {
       this.myId = this.socket.id
