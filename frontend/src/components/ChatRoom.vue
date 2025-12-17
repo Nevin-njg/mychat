@@ -1,24 +1,45 @@
 <template>
   <div class="chat-wrapper">
-    <div class="chat-header">Tell Me!</div>
-
-    <div class="chat-body">
-      <div
-        v-for="(msg, index) in messages"
-        :key="index"
-        :class="['message', msg.sender === myId ? 'me' : 'other']"
-      >
-        {{ msg.text }}
-      </div>
+    <!-- Username Screen -->
+    <div v-if="!username" class="username-box">
+      <h2>Join Chat</h2>
+      <input
+        v-model="tempName"
+        placeholder="Enter your name"
+        @keyup.enter="joinChat"
+      />
+      <button @click="joinChat">Join</button>
     </div>
 
-    <div class="chat-input">
-      <input
-        v-model="message"
-        placeholder="Type a message"
-        @keyup.enter="sendMessage"
-      />
-      <button @click="sendMessage">➤</button>
+    <!-- Chat Screen -->
+    <div v-else class="chat-container">
+      <div class="chat-header">
+        💬 Chat Room
+      </div>
+
+      <div class="chat-body">
+        <div
+          v-for="(msg, index) in messages"
+          :key="index"
+          :class="msg.type === 'system'
+            ? 'system'
+            : ['message', msg.sender === myId ? 'me' : 'other']"
+        >
+          <span v-if="msg.username" class="username">
+            {{ msg.username }}:
+          </span>
+          {{ msg.text || msg.message }}
+        </div>
+      </div>
+
+      <div class="chat-input">
+        <input
+          v-model="message"
+          placeholder="Type a message"
+          @keyup.enter="sendMessage"
+        />
+        <button @click="sendMessage">Send</button>
+      </div>
     </div>
   </div>
 </template>
@@ -27,16 +48,19 @@
 import { io } from "socket.io-client"
 
 export default {
+  name: "ChatRoom",
   data() {
     return {
       socket: null,
       myId: null,
+      username: "",
+      tempName: "",
       message: "",
       messages: []
     }
   },
   mounted() {
-    this.socket = io("https://mychat-cyx1.onrender.com")
+    this.socket = io("http://localhost:3000")
 
     this.socket.on("connect", () => {
       this.myId = this.socket.id
@@ -44,17 +68,33 @@ export default {
 
     this.socket.on("chat", (msg) => {
       this.messages.push(msg)
-      this.$nextTick(() => {
-        const body = document.querySelector(".chat-body")
-        body.scrollTop = body.scrollHeight
+      this.scrollToBottom()
+    })
+
+    this.socket.on("system", (msg) => {
+      this.messages.push({
+        ...msg,
+        type: "system"
       })
+      this.scrollToBottom()
     })
   },
   methods: {
+    joinChat() {
+      if (!this.tempName.trim()) return
+      this.username = this.tempName
+      this.socket.emit("join", this.username)
+    },
     sendMessage() {
       if (!this.message.trim()) return
       this.socket.emit("chat", this.message)
       this.message = ""
+    },
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const body = document.querySelector(".chat-body")
+        if (body) body.scrollTop = body.scrollHeight
+      })
     }
   }
 }
@@ -62,54 +102,108 @@ export default {
 
 <style scoped>
 .chat-wrapper {
-  width: 360px;
-  height: 520px;
-  margin: 40px auto;
+  height: 100vh;
+  background: #ece5dd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  color: #111;
+}
+
+/* Username screen */
+.username-box {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  width: 300px;
+}
+
+.username-box input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.username-box button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #075e54;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Chat container */
+.chat-container {
+  width: 380px;
+  height: 600px;
+  background: #fff;
   display: flex;
   flex-direction: column;
-  background: #e5ddd5;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   overflow: hidden;
 }
 
+/* Header */
 .chat-header {
   background: #075e54;
   color: white;
-  padding: 14px;
+  padding: 15px;
   text-align: center;
   font-weight: bold;
 }
 
+/* Messages */
 .chat-body {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  background: #e5ddd5;
 }
+
+/* Message bubbles */
 .message {
-  max-width: 70%;
   padding: 8px 12px;
-  margin-bottom: 8px;
+  margin: 6px 0;
+  max-width: 75%;
   border-radius: 10px;
   font-size: 14px;
-  color: #111;
   word-wrap: break-word;
+  color: #111;  
 }
 
 .me {
-  align-self: flex-end;
   background: #dcf8c6;
-  color: #111; 
+  margin-left: auto;
+  text-align: right;
 }
 
 .other {
-  align-self: flex-start;
-  background: #ffffff;
-  color: #111; 
+  background: #fff;
+  margin-right: auto;
 }
 
+/* System messages */
+.system {
+  text-align: center;
+  font-size: 12px;
+  color: #333;
+  margin: 10px 0;
+}
+
+
+/* Username label */
+.username {
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+/* Input area */
 .chat-input {
   display: flex;
   padding: 10px;
@@ -120,18 +214,17 @@ export default {
   flex: 1;
   padding: 10px;
   border-radius: 20px;
-  border: none;
+  border: 1px solid #ccc;
   outline: none;
 }
 
 .chat-input button {
-  margin-left: 8px;
+  margin-left: 10px;
+  padding: 10px 16px;
   background: #075e54;
   color: white;
   border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  border-radius: 20px;
   cursor: pointer;
 }
 </style>

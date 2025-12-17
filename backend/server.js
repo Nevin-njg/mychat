@@ -15,20 +15,27 @@ const io = new Server(server, {
 
 // Socket.IO logic
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id)
+  console.log('✅ User connected:', socket.id)
 
-  // Listen for chat messages
+  socket.on('join', (username) => {
+    console.log('➡️ JOIN:', username)
+    socket.username = username
+  })
+
   socket.on('chat', (message) => {
+    console.log('➡️ CHAT RECEIVED:', message)
     io.emit('chat', {
       text: message,
-      sender: socket.id
+      sender: socket.id,
+      username: socket.username
     })
   })
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id)
+    console.log('❌ User disconnected:', socket.id)
   })
 })
+
 
 // Start server
 const PORT = 3000
