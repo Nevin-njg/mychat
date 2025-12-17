@@ -8,8 +8,9 @@ const server = http.createServer(app)
 // Attach Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "https://mychat-njg.netlify.app", // Put your EXACT Netlify URL here
-    methods: ["GET", "POST"]
+    origin: "https://mychat-njg.netlify.app", // Your exact Netlify URL
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
