@@ -8,7 +8,7 @@ const server = http.createServer(app)
 // Attach Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "https://mychat-njg.netlify.app", // Your exact Netlify URL
+    origin: ["https://mychat-njg.netlify.app", "http://localhost:5173"], 
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
 
 
 // Start server
-const PORT = 3000
+const PORT = process.env.PORT || 3000
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
 })
