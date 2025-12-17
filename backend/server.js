@@ -8,10 +8,10 @@ const server = http.createServer(app)
 // Attach Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "*", // allow frontend during development
+    origin: "https://mychat-njg.netlify.app", // Put your EXACT Netlify URL here
     methods: ["GET", "POST"]
   }
-})
+});
 
 // Socket.IO logic
 io.on('connection', (socket) => {
