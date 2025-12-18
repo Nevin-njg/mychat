@@ -60,7 +60,7 @@ export default {
     }
   },
   mounted() {
-    this.socket = io("https://mychat-cyxl.onrender.com")
+    this.socket = io("https://mychat-cyx1.onrender.com")
 
     this.socket.on("connect", () => {
       this.myId = this.socket.id
