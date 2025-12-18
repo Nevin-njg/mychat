@@ -3,8 +3,8 @@
     <div v-if="!username" class="username-overlay">
       <div class="username-box">
         <div class="icon-circle">💬</div>
-        <h2>Welcome to MyChat</h2>
-        <p>Enter a nickname to join the room</p>
+        <h2>Welcome to Battalions</h2>
+        <p>Enter your name</p>
         <input
           v-model="tempName"
           placeholder="Nickname..."
@@ -19,7 +19,7 @@
         <div class="header-info">
           <span class="status-dot" :class="{ 'online': isConnected }"></span>
           <div>
-            <div class="title">Global Chat</div>
+            <div class="title">Battalions</div>
             <div class="subtitle">{{ isConnected ? 'Online' : 'Connecting to Render...' }}</div>
           </div>
         </div>
